@@ -6,12 +6,17 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from yacs.config import CfgNode as CN
+from datetime import datetime
+
+now = datetime.now().strftime("%Y%m%d-%H%M%S")
+root = '/raid/gqr/resp/SiamCAR/'
+# root = '/root/autodl-tmp/SiamCAR/'
 
 __C = CN()
 
 cfg = __C
 
-__C.META_ARC = "siamcar_r50"
+__C.META_ARC = "siamcar_r34"
 
 __C.CUDA = True
 
@@ -31,9 +36,9 @@ __C.TRAIN.RESUME = ''
 
 __C.TRAIN.PRETRAINED = ''
 
-__C.TRAIN.LOG_DIR = './logs'
+__C.TRAIN.LOG_DIR = root + 'experiments/' + __C.META_ARC + '/' + now
 
-__C.TRAIN.SNAPSHOT_DIR = './snapshot'
+__C.TRAIN.SNAPSHOT_DIR = root + 'experiments/' + __C.META_ARC + '/' + now + '/snapshot'
 
 __C.TRAIN.EPOCH = 20
 
@@ -41,7 +46,7 @@ __C.TRAIN.START_EPOCH = 0
 
 __C.TRAIN.BATCH_SIZE = 32
 
-__C.TRAIN.NUM_WORKERS = 1
+__C.TRAIN.NUM_WORKERS = 6
 
 __C.TRAIN.MOMENTUM = 0.9
 
@@ -53,8 +58,8 @@ __C.TRAIN.LOC_WEIGHT = 2.0
 
 __C.TRAIN.CEN_WEIGHT = 1.0
 
-__C.TRAIN.PRINT_FREQ = 20
-
+__C.TRAIN.PRINT_FREQ = 100
+# PRINT_FREQ=20
 __C.TRAIN.LOG_GRADS = False
 
 __C.TRAIN.GRAD_CLIP = 10.0
@@ -128,42 +133,42 @@ __C.DATASET.GRAY = 0.0
 __C.DATASET.NAMES = ('VID', 'COCO', 'DET', 'YOUTUBEBB')
 
 __C.DATASET.VID = CN()
-__C.DATASET.VID.ROOT = 'train_dataset/vid/crop511'          # VID dataset path
-__C.DATASET.VID.ANNO = 'train_dataset/vid/train.json'
+__C.DATASET.VID.ROOT = root + 'train_dataset/vid/crop511'  # VID dataset path
+__C.DATASET.VID.ANNO = root + 'train_dataset/vid/train.json'
 __C.DATASET.VID.FRAME_RANGE = 100
 __C.DATASET.VID.NUM_USE = 100000  # repeat until reach NUM_USE
 
 __C.DATASET.YOUTUBEBB = CN()
-__C.DATASET.YOUTUBEBB.ROOT = 'train_dataset/yt_bb/crop511'  # YOUTUBEBB dataset path
-__C.DATASET.YOUTUBEBB.ANNO = 'train_dataset/yt_bb/train.json'
+__C.DATASET.YOUTUBEBB.ROOT = root + 'train_dataset/yt_bb/crop511'  # YOUTUBEBB dataset path
+__C.DATASET.YOUTUBEBB.ANNO = root + 'train_dataset/yt_bb/train.json'
 __C.DATASET.YOUTUBEBB.FRAME_RANGE = 3
 __C.DATASET.YOUTUBEBB.NUM_USE = -1  # use all not repeat
 
 __C.DATASET.COCO = CN()
-__C.DATASET.COCO.ROOT = 'train_dataset/coco/crop511'         # COCO dataset path
-__C.DATASET.COCO.ANNO = 'train_dataset/coco/train2017.json'
+__C.DATASET.COCO.ROOT = root + 'train_dataset/coco/crop511'  # COCO dataset path
+__C.DATASET.COCO.ANNO = root + 'train_dataset/coco/train2017.json'
 __C.DATASET.COCO.FRAME_RANGE = 1
 __C.DATASET.COCO.NUM_USE = -1
 
 __C.DATASET.DET = CN()
-__C.DATASET.DET.ROOT = 'train_dataset/det/crop511'           # DET dataset path
-__C.DATASET.DET.ANNO = 'train_dataset/det/train.json'
+__C.DATASET.DET.ROOT = root + 'train_dataset/det/crop511'  # DET dataset path
+__C.DATASET.DET.ANNO = root + 'train_dataset/det/train.json'
 __C.DATASET.DET.FRAME_RANGE = 1
 __C.DATASET.DET.NUM_USE = -1
 
 __C.DATASET.GOT = CN()
-__C.DATASET.GOT.ROOT = 'train_dataset/got10k/crop511'         # GOT dataset path
-__C.DATASET.GOT.ANNO = 'train_dataset/got10k/train.json'
+__C.DATASET.GOT.ROOT = root + 'train_dataset/got10k/crop511'  # GOT dataset path
+__C.DATASET.GOT.ANNO = root + 'train_dataset/got10k/train.json'
 __C.DATASET.GOT.FRAME_RANGE = 50
 __C.DATASET.GOT.NUM_USE = 100000
 
 __C.DATASET.LaSOT = CN()
-__C.DATASET.LaSOT.ROOT = 'train_dataset/lasot/crop511'         # LaSOT dataset path
-__C.DATASET.LaSOT.ANNO = 'train_dataset/lasot/train.json'
+__C.DATASET.LaSOT.ROOT = root + 'train_dataset/lasot/crop511'  # LaSOT dataset path
+__C.DATASET.LaSOT.ANNO = root + 'train_dataset/lasot/train.json'
 __C.DATASET.LaSOT.FRAME_RANGE = 100
 __C.DATASET.LaSOT.NUM_USE = 100000
 
-__C.DATASET.VIDEOS_PER_EPOCH = 600000 #600000
+__C.DATASET.VIDEOS_PER_EPOCH = 600000  # 600000
 # ------------------------------------------------------------------------ #
 # Backbone options
 # ------------------------------------------------------------------------ #
@@ -236,7 +241,6 @@ __C.TRACK.CONTEXT_AMOUNT = 0.5
 
 __C.TRACK.STRIDE = 8
 
-
 __C.TRACK.SCORE_SIZE = 25
 
 __C.TRACK.hanming = True
@@ -248,7 +252,6 @@ __C.TRACK.NUM_N = 1
 __C.TRACK.REGION_S = 0.1
 
 __C.TRACK.REGION_L = 0.44
-
 
 # ------------------------------------------------------------------------ #
 # HP_SEARCH parameters

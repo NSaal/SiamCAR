@@ -2,9 +2,10 @@ import math
 
 import torch.nn as nn
 import torch
+from . import se_resnet as se
 
+__all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'se_resnet18', 'se_resnet34', 'se_resnet50']
 
-__all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50']
 
 # shift invariant
 # def conv3x3(in_planes, out_planes, stride=1, groups=1):
@@ -203,6 +204,11 @@ def conv3x3(in_planes, out_planes, stride=1, dilation=1):
                      padding=dilation, bias=False, dilation=dilation)
 
 
+def conv1x1(in_planes, out_planes, stride=1):
+    """1x1 convolution"""
+    return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+
+
 class BasicBlock(nn.Module):
     expansion = 1
 
@@ -356,10 +362,14 @@ class ResNet(nn.Module):
                 else:
                     dd = 1
                     padding = 0
+                if block == BasicBlock or block == Bottleneck:
+                    conv = nn.Conv2d(self.inplanes, planes * block.expansion,
+                                     kernel_size=3, stride=stride, bias=False,  # kernel=3
+                                     padding=padding, dilation=dd)
+                elif block == se.SEBasicBlock or block == se.SEBottleneck:
+                    conv = conv1x1(self.inplanes, planes * block.expansion, stride)
                 downsample = nn.Sequential(
-                    nn.Conv2d(self.inplanes, planes * block.expansion,
-                              kernel_size=3, stride=stride, bias=False,  # kernel=3
-                              padding=padding, dilation=dd),
+                    conv,
                     nn.BatchNorm2d(planes * block.expansion),
                 )
 
@@ -415,15 +425,30 @@ def resnet50(**kwargs):
     return model
 
 
+def se_resnet18(**kwargs):
+    model = ResNet(se.SEBasicBlock, [2, 2, 2, 2], **kwargs)
+    return model
+
+
+def se_resnet34(**kwargs):
+    model = ResNet(se.SEBasicBlock, [3, 4, 6, 3], **kwargs)
+    return model
+
+
+def se_resnet50(**kwargs):
+    model = ResNet(se.SEBottleneck, [3, 4, 6, 3], **kwargs)
+    return model
+
+
 if __name__ == '__main__':
-    net = resnet50()
+    net = se_resnet34(used_layers=[2, 3, 4])
     print(net)
     net = net.cuda()
 
     var = torch.FloatTensor(1, 3, 127, 127).cuda()
     # var = Variable(var)
 
-    net(var)
+    print(net(var))
     print('*************')
     var = torch.FloatTensor(1, 3, 255, 255).cuda()
     # var = Variable(var)

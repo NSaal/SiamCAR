@@ -1,10 +1,10 @@
-META_ARC: "siamcar_r50"
+META_ARC: "siamcar_r34"
 
 BACKBONE:
-    TYPE: "resnet50"
+    TYPE: "resnet34"
     KWARGS:
         used_layers: [2, 3, 4]
-    PRETRAINED: ''
+    PRETRAINED: 'pretrained_models/resnet34-b627a593.pth'
     TRAIN_LAYERS: ['layer2','layer3','layer4']
     TRAIN_EPOCH: 10
     LAYERS_LR: 0.1
@@ -13,7 +13,8 @@ ADJUST:
     ADJUST: true
     TYPE: "AdjustAllLayer"
     KWARGS:
-        in_channels: [512, 1024, 2048]
+#        in_channels: [512, 1024, 2048]
+        in_channels: [128, 256, 512]
         out_channels: [256, 256, 256]
 
 
@@ -53,7 +54,7 @@ TRAIN:
             start_lr: 0.001
             end_lr: 0.005
             step: 1
-
+#    LOG_DIR : '/raid/gqr/resp/SiamCAR/experiments/' + META_ARC + '/' + now
 DATASET:
     NAMES: 
 #    - 'VID'

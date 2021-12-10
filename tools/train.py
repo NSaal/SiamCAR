@@ -34,9 +34,10 @@ from pysot.datasets.dataset import TrkDataset
 from pysot.core.config import cfg
 
 
+
 logger = logging.getLogger('global')
 parser = argparse.ArgumentParser(description='siamcar tracking')
-parser.add_argument('--cfg', type=str, default='../experiments/siamcar_r50/config.yaml',
+parser.add_argument('--cfg', type=str, default='../experiments/siamcar_r34/config.yaml',
                     help='configuration of tracking')
 parser.add_argument('--seed', type=int, default=123456,
                     help='random seed')
@@ -69,6 +70,7 @@ def build_data_loader():
                               num_workers=cfg.TRAIN.NUM_WORKERS,
                               pin_memory=True,
                               sampler=train_sampler)
+    logger.info("real batch size:{}".format(cfg.TRAIN.BATCH_SIZE))
     return train_loader
 
 
@@ -167,6 +169,7 @@ def train(train_loader, model, optimizer, lr_scheduler, tb_writer):
         os.makedirs(cfg.TRAIN.SNAPSHOT_DIR)
 
     logger.info("model\n{}".format(describe(model.module)))
+
     end = time.time()
     for idx, data in enumerate(train_loader):
         if epoch != idx // num_per_epoch + start_epoch:
@@ -180,6 +183,11 @@ def train(train_loader, model, optimizer, lr_scheduler, tb_writer):
                         cfg.TRAIN.SNAPSHOT_DIR+'/checkpoint_e%d.pth' % (epoch))
 
             if epoch == cfg.TRAIN.EPOCH:
+                torch.save(
+                    {'epoch': epoch,
+                     'state_dict': model.module.state_dict(),
+                     'optimizer': optimizer.state_dict()},
+                    cfg.TRAIN.SNAPSHOT_DIR + '/checkpoint_e%d.pth' % (epoch))
                 return
 
             if cfg.BACKBONE.TRAIN_EPOCH == epoch:
@@ -190,6 +198,7 @@ def train(train_loader, model, optimizer, lr_scheduler, tb_writer):
             lr_scheduler.step(epoch)
             cur_lr = lr_scheduler.get_cur_lr()
             logger.info('epoch: {}'.format(epoch+1))
+
 
         tb_idx = idx
         if idx % num_per_epoch == 0 and idx != 0:
@@ -229,6 +238,10 @@ def train(train_loader, model, optimizer, lr_scheduler, tb_writer):
 
         if rank == 0:
             for k, v in batch_info.items():
+                if 'time' in k:
+                    k='time/'+k
+                elif 'loss' in k:
+                    k='loss/'+k
                 tb_writer.add_scalar(k, v, tb_idx)
 
             if (idx+1) % cfg.TRAIN.PRINT_FREQ == 0:

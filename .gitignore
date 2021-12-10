@@ -110,3 +110,6 @@ venv.bak/
 
 #testing_dataset/*
 #experiments
+
+.idea
+

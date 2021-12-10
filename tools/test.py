@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import argparse
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = '1'
 
 import cv2
 import torch
@@ -40,7 +41,7 @@ parser.add_argument('--config', type=str, default='../experiments/siamcar_r50/co
 
 args = parser.parse_args()
 
-torch.set_num_threads(1)
+torch.set_num_threads(2)
 
 
 def main():
@@ -52,7 +53,7 @@ def main():
     hp = {'lr': params[0], 'penalty_k':params[1], 'window_lr':params[2]}
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    dataset_root = os.path.join(cur_dir,'../testing_dataset', args.dataset)
+    dataset_root = os.path.join(cur_dir,'../test_dataset', args.dataset)
 
     model = ModelBuilder()
 
@@ -117,7 +118,7 @@ def main():
         print('({:3d}) Video: {:12s} Time: {:5.1f}s Speed: {:3.1f}fps'.format(
             v_idx+1, video.name, toc, idx / toc))
     os.chdir(model_path)
-    save_file = '../%s' % dataset
+    save_file = '../%s' % dataset.name
     shutil.make_archive(save_file, 'zip')
     print('Records saved at', save_file + '.zip')
 

@@ -9,7 +9,6 @@ import logging
 
 import torch
 
-
 logger = logging.getLogger('global')
 
 
@@ -17,8 +16,18 @@ def check_keys(model, pretrained_state_dict):
     ckpt_keys = set(pretrained_state_dict.keys())
     model_keys = set(model.state_dict().keys())
     used_pretrained_keys = model_keys & ckpt_keys
+    # used_pretrained_keys = {}
+
+    # for key in model_keys:
+    #     if pretrained_state_dict[key].shape != model.state_dict()[key].shape:
+    #         used_pretrained_keys.add(key)
+
     unused_pretrained_keys = ckpt_keys - model_keys
+    # unused_pretrained_keys = ckpt_keys - used_pretrained_keys
+
     missing_keys = model_keys - ckpt_keys
+    # missing_keys = model_keys - used_pretrained_keys
+
     # filter 'num_batches_tracked'
     missing_keys = [x for x in missing_keys
                     if not x.endswith('num_batches_tracked')]
@@ -48,24 +57,28 @@ def load_pretrain(model, pretrained_path):
     logger.info('load pretrained model from {}'.format(pretrained_path))
     device = torch.cuda.current_device()
     pretrained_dict = torch.load(pretrained_path,
-        map_location=lambda storage, loc: storage.cuda(device))
+                                 map_location=lambda storage, loc: storage.cuda(device))
     if "state_dict" in pretrained_dict.keys():
         pretrained_dict = remove_prefix(pretrained_dict['state_dict'],
                                         'module.')
     else:
         pretrained_dict = remove_prefix(pretrained_dict, 'module.')
 
+    model_dict = model.state_dict()
+    pretrained_dict = {k: v for k, v in pretrained_dict.items() if (k in model_dict and v.shape == model_dict[k].shape)}
+
     try:
         check_keys(model, pretrained_dict)
     except:
         logger.info('[Warning]: using pretrain as features.\
-                Adding "features." as prefix')
+Adding "features." as prefix')
         new_dict = {}
         for k, v in pretrained_dict.items():
             k = 'features.' + k
             new_dict[k] = v
         pretrained_dict = new_dict
         check_keys(model, pretrained_dict)
+
     model.load_state_dict(pretrained_dict, strict=False)
     return model
 
@@ -73,7 +86,7 @@ def load_pretrain(model, pretrained_path):
 def restore_from(model, optimizer, ckpt_path):
     device = torch.cuda.current_device()
     ckpt = torch.load(ckpt_path,
-        map_location=lambda storage, loc: storage.cuda(device))
+                      map_location=lambda storage, loc: storage.cuda(device))
     epoch = ckpt['epoch']
 
     ckpt_model_dict = remove_prefix(ckpt['state_dict'], 'module.')
